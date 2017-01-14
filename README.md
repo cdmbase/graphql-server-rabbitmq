@@ -1,3 +1,3 @@
-# graphql-server-express
+# graphql-server-amqp
 
-This is the Express and Connect integration for the Apollo community GraphQL Server. [Read the docs.](http://dev.apollodata.com/tools/apollo-server/index.html)
+This is the RabbitMQ integration for the Apollo community GraphQL Server.
