@@ -7,7 +7,7 @@
     "compile": "tsc",
     "prepublish": "npm run compile",
     "test": "npm run testonly --",
-    "testonly": "npm run compile && mocha --compilers js:babel-core/register --reporter spec --full-trace ./dist/apolloServerAmqp.test.js"
+    "testonly": "npm run compile && mocha --compilers js:babel-core/register --reporter spec --full-trace ./dist/apolloServerRabbitMQ.test.js"
   },
   "repository": {
     "type": "git",

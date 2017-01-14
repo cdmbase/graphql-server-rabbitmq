@@ -1,28 +1,14 @@
 // tslint:disable
-// TODO: enable when you figure out how to automatically fix trailing commas
-
-// TODO: maybe we should get rid of these tests entirely, and move them to expressApollo.test.ts
-
-// TODO: wherever possible the tests should be rewritten to make them easily work with Hapi, express, Koa etc.
 
 /*
- * Below are the HTTP tests from express-graphql. We're using them here to make
- * sure apolloServer still works if used in the place of express-graphql.
+ * Below are the RabbitMQ test.
  */
 
-import { AMQPSubscription } from './rabbitmqApollo';
+import { AMQPSubscription, GrapQLAmqpOptions } from './rabbitmqApollo';
 import { AmqpPubSub } from 'graphql-rabbitmq-subscriptions';
-/**
- *  Copyright (c) 2015, Facebook, Inc.
- *  All rights reserved.
- *
- *  This source code is licensed under the BSD-style license found in the
- *  LICENSE file in the root directory of this source tree. An additional grant
- *  of patent rights can be found in the PATENTS file in the same directory.
- */
-
 import { expect } from 'chai';
 import { stringify } from 'querystring';
+//import testSuite, { Schema, CreateAppOptions } from 'graphql-server-integration-testsuite';
 const request = require('supertest-as-promised');
 import {
   GraphQLSchema,
@@ -82,30 +68,29 @@ function urlString(urlParams?: any): string {
   return str;
 }
 
-function catchError(p) {
-  return p.then(
-    (res) => {
-      // workaround for unkown issues with testing against npm package of express-graphql.
-      // the same code works when testing against the source, I'm not sure why.
-      if (res && res.error) {
-        return { response: res };
-      }
-      throw new Error('Expected to catch error.');
-    },
-    error => {
-      if (!(error instanceof Error)) {
-        throw new Error('Expected error to be instanceof Error.');
-      }
-      return error;
-    }
-  );
-}
+// function createApp(options: CreateAppOptions = {}) {
+//   options.graphqlOptions = options.graphqlOptions || { schema: Schema };
+//
+//   const newOptions = Object.assign({}, ...options.graphqlOptions, logger);
+//   const app = new AMQPSubscription(newOptions);
+//   return app;
+// }
 
-function promiseTo(fn) {
-  return new Promise((resolve, reject) => {
-    fn((error, result) => error ? reject(error) : resolve(result));
+describe('rabbitmqApollo', () => {
+  it('throws error if called without schema', function(){
+    expect(() => (new AMQPSubscription(undefined as GrapQLAmqpOptions))).to.throw('Apollo Server requires options.');
   });
-}
+
+  // it('throws an error if called with more than one argument', function(){
+  //   expect(() => (<any>(new AMQPSubscription))({}, 'x')).to.throw(
+  //     'Apollo Server expects exactly one argument, got 2');
+  // });
+});
+
+// describe('integration:RabbitMQ', () => {
+//   testSuite(createApp);
+// });
+
 
 const version = 'modern';
 describe(`GraphQL-AMQP (apolloServer) tests for ${version} rabbitmq`, () => {
