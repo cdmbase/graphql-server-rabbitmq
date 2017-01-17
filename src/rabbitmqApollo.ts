@@ -1,11 +1,8 @@
-import * as express from 'express';
 import * as graphql from 'graphql';
-import * as url from 'url';
 import { GraphQLOptions, runQuery } from 'graphql-server-core';
 import {
   RabbitMqConnectionFactory,
   RabbitMqConsumer,
-  RabbitMqProducer,
   IRabbitMqConnectionConfig,
   IRabbitMqConsumerDisposer,
 } from "rokot-mq-rabbit";
@@ -39,7 +36,7 @@ export class AMQPSubscription {
     this.graphqlOptions = options;
   }
 
-  public listenToQueries(cb): Promise<any> {
+  public listenToQueries(cb?:Function): Promise<any> {
     return new Promise((resolve, reject) => this.listener.subscribe(this.GRAPHQL_QUEUENAME, msg => this.onMessage(msg).then(m => cb(m)))
       .then(disposer => {
         this.unsubscribeChannel = disposer;
