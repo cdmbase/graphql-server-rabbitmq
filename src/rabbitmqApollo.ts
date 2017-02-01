@@ -37,7 +37,8 @@ export class AMQPSubscription {
   }
 
   public listenToQueries(cb?:Function): Promise<any> {
-    return new Promise((resolve, reject) => this.listener.subscribe(this.GRAPHQL_QUEUENAME, msg => this.onMessage(msg).then(m => cb(m)))
+    return new Promise((resolve, reject) => this.listener.subscribe(this.GRAPHQL_QUEUENAME, 
+    msg => this.onMessage(msg).then(m => cb? cb(m): m))
       .then(disposer => {
         this.unsubscribeChannel = disposer;
         return resolve();
