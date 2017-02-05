@@ -1,4 +1,7 @@
-import * as graphql from 'graphql';
+import {
+  ExecutionResult,
+  formatError,
+} from 'graphql';
 import { GraphQLOptions, runQuery } from 'graphql-server-core';
 import {
   RabbitMqConnectionFactory,
@@ -26,7 +29,7 @@ export class AMQPSubscription {
       throw new Error(`Apollo Server expects exactly one argument, got ${arguments.length}`);
     }
 
-    const config = options.config || {host: "127.0.0.1", port: 5672};
+    const config = options.config || { host: "127.0.0.1", port: 5672 };
     const { logger } = options;
     this.logger = createChildLogger(logger, 'AmqpSubscriptionServer');
 
@@ -36,27 +39,27 @@ export class AMQPSubscription {
     this.graphqlOptions = options;
   }
 
-  public listenToQueries(cb?:Function): Promise<any> {
-    return new Promise((resolve, reject) => this.listener.subscribe(this.GRAPHQL_QUEUENAME, 
-    msg => this.onMessage(msg).then(m => cb))
+  public listenToQueries(cb?: Function): Promise<any> {
+    return new Promise((resolve, reject) => this.listener.subscribe(this.GRAPHQL_QUEUENAME,
+      msg => this.onMessage(msg).then(m => cb ? cb(m) : m))
       .then(disposer => {
         this.unsubscribeChannel = disposer;
         return resolve();
       }).catch(err => {
-      this.logger.error(err, "failed to recieve message from queue '%s'", this.GRAPHQL_QUEUENAME);
-      reject()
-    }));
+        this.logger.error(err, "failed to recieve message from queue '%s'", this.GRAPHQL_QUEUENAME);
+        reject()
+      }));
   }
 
   public unsubscribe() {
-      this.unsubscribeChannel().then(() => {
-        this.logger.trace("cancelled channel from subscribing to queue '%s'", this.GRAPHQL_QUEUENAME);
-      }).catch(err => {
-        this.logger.error(err, "channel cancellation failed from queue '%j'", this.GRAPHQL_QUEUENAME);
-      });
+    this.unsubscribeChannel().then(() => {
+      this.logger.trace("cancelled channel from subscribing to queue '%s'", this.GRAPHQL_QUEUENAME);
+    }).catch(err => {
+      this.logger.error(err, "channel cancellation failed from queue '%j'", this.GRAPHQL_QUEUENAME);
+    });
   }
 
-  private onMessage(queryOptions: any) {
+  private onMessage(queryOptions: any): Promise<ExecutionResult> {
     this.logger.trace("message received to process is '(%j)'", queryOptions);
 
     // TODO: only support single object
@@ -73,11 +76,10 @@ export class AMQPSubscription {
     // modify the context object without interfering with each other.
     let context = this.graphqlOptions.context;
     if (isBatch) {
-      context = Object.assign({},  context || {});
+      context = Object.assign({}, context || {});
     }
 
-    const formatErrorFn = this.graphqlOptions.formatError || graphql.formatError;
-
+    const formatErrorFn = this.graphqlOptions.formatError || formatError;
     let params = {
       schema: this.graphqlOptions.schema,
       query: queryOptions.query,
@@ -99,8 +101,8 @@ export class AMQPSubscription {
     return runQuery(params)
   }
   private listener: any;
-  private logger:Logger;
-  private graphqlOptions:GraphQLOptions;
+  private logger: Logger;
+  private graphqlOptions: GraphQLOptions;
   private GRAPHQL_QUEUENAME = "graphql";
   private unsubscribeChannel: any;
 }

@@ -107,16 +107,16 @@ describe(`GraphQL-AMQP (apolloServer) tests for ${version} rabbitmq`, function()
       const data = { query: '{ test(who: "World") }' };
       pubsub.publish("graphql", data);
 
-      const callback = function (payload) {
+      const callback = (payload) => {
         try {
           expect(payload).to.deep.equal({
             data: {
               test: 'Hello World'
             }
           });
-          setTimeout(done(), 2);
+          setTimeout(()=>done(), 2);
         } catch (e) {
-          setTimeout(done(e), 2);
+          setTimeout(() => done(e), 2);
         }
 
       };
@@ -168,10 +168,10 @@ describe(`GraphQL-AMQP (apolloServer) tests for ${version} rabbitmq`, function()
               testMutation: 'not really a mutation, but who cares: world'
             }
           });
-          setTimeout(done(), 4);
+          setTimeout(() => done(), 4);
         } catch (e) {
 
-          setTimeout(done(e), 4);
+          setTimeout(() => done(e), 4);
         }
 
       };
@@ -181,164 +181,164 @@ describe(`GraphQL-AMQP (apolloServer) tests for ${version} rabbitmq`, function()
     });
   });
 
-  // describe('Error handling functionality', () => {
-  //   it('handles field errors caught by GraphQL', (done) => {
+  describe('Error handling functionality', () => {
+    it('handles field errors caught by GraphQL', (done) => {
 
-  //     const app = new AMQPSubscription({
-  //       schema: TestSchema,
-  //       logger,
-  //     });
+      const app = new AMQPSubscription({
+        schema: TestSchema,
+        logger,
+      });
 
-  //     const pubsub = new AmqpPubSub({ logger });
+      const pubsub = new AmqpPubSub({ logger });
 
-  //     const query = '{thrower}';
-  //     const data = { query };
-  //     pubsub.publish("graphql", data);
+      const query = '{thrower}';
+      const data = { query };
+      pubsub.publish("graphql", data);
 
-  //     const callback = function (payload) {
-  //       try {
-  //         expect(payload).to.deep.equal({
-  //           data: null,
-  //           errors: [{
-  //             message: 'Throws!',
-  //             locations: [{ line: 1, column: 2 }],
-  //             path: ["thrower"]
-  //           }]
-  //         });
-  //         setTimeout(done(), 4);
-  //       } catch (e) {
-  //         setTimeout(done(e), 4);
-  //       }
+      const callback = function (payload) {
+        try {
+          expect(payload).to.deep.equal({
+            data: null,
+            errors: [{
+              message: 'Throws!',
+              locations: [{ line: 1, column: 2 }],
+              path: ["thrower"]
+            }]
+          });
+          setTimeout(() => done(), 4);
+        } catch (e) {
+          setTimeout(() => done(e), 4);
+        }
 
-  //     };
-  //     app.listenToQueries(callback).then(() => {
-  //       app.unsubscribe();
-  //     });
-  //   });
+      };
+      app.listenToQueries(callback).then(() => {
+        app.unsubscribe();
+      });
+    });
 
-  //   it('allows for custom error formatting to sanitize', (done) => {
+    it('allows for custom error formatting to sanitize', (done) => {
 
-  //     const app = new AMQPSubscription({
-  //       schema: TestSchema,
-  //       formatError(error) {
-  //         return { message: 'Custom error format: ' + error.message };
-  //       },
-  //       logger,
-  //     });
+      const app = new AMQPSubscription({
+        schema: TestSchema,
+        formatError(error) {
+          return { message: 'Custom error format: ' + error.message };
+        },
+        logger,
+      });
 
-  //     const pubsub = new AmqpPubSub({ logger });
+      const pubsub = new AmqpPubSub({ logger });
 
-  //     const query = '{thrower}';
-  //     const data = { query };
-  //     pubsub.publish("graphql", data);
+      const query = '{thrower}';
+      const data = { query };
+      pubsub.publish("graphql", data);
 
-  //     const callback = function (payload) {
-  //       try {
-  //         expect(payload).to.deep.equal({
-  //           data: null,
-  //           errors: [{
-  //             message: 'Custom error format: Throws!',
-  //           }]
-  //         });
-  //         setTimeout(done(), 4);
-  //       } catch (e) {
-  //         setTimeout(done(e), 4);
-  //       }
+      const callback = function (payload) {
+        try {
+          expect(payload).to.deep.equal({
+            data: null,
+            errors: [{
+              message: 'Custom error format: Throws!',
+            }]
+          });
+          setTimeout(() => done(), 4);
+        } catch (e) {
+          setTimeout(() => done(e), 4);
+        }
 
-  //     };
-  //     app.listenToQueries(callback).then(() => {
-  //       app.unsubscribe();
-  //     });
-  //   });
+      };
+      app.listenToQueries(callback).then(() => {
+        app.unsubscribe();
+      });
+    });
 
-  //   it('allows for custom error formatting to elaborate', (done) => {
+    it('allows for custom error formatting to elaborate', (done) => {
 
-  //     const app = new AMQPSubscription({
-  //       schema: TestSchema,
-  //       logger,
-  //       formatError(error) {
-  //         return {
-  //           message: error.message,
-  //           locations: error.locations,
-  //           stack: 'Stack trace'
-  //         };
-  //       }
-  //     });
+      const app = new AMQPSubscription({
+        schema: TestSchema,
+        logger,
+        formatError(error) {
+          return {
+            message: error.message,
+            locations: error.locations,
+            stack: 'Stack trace'
+          };
+        }
+      });
 
-  //     const pubsub = new AmqpPubSub({ logger });
+      const pubsub = new AmqpPubSub({ logger });
 
-  //     const query = '{thrower}';
-  //     const data = { query };
-  //     pubsub.publish("graphql", data);
+      const query = '{thrower}';
+      const data = { query };
+      pubsub.publish("graphql", data);
 
-  //     const callback = function (payload) {
-  //       try {
-  //         expect(payload).to.deep.equal({
-  //           data: null,
-  //           errors: [{
-  //             message: 'Throws!',
-  //             locations: [{ line: 1, column: 2 }],
-  //             stack: 'Stack trace',
-  //           }]
-  //         });
-  //         setTimeout(done(), 4);
-  //       } catch (e) {
-  //         setTimeout(done(e), 4);
-  //       }
+      const callback = function (payload) {
+        try {
+          expect(payload).to.deep.equal({
+            data: null,
+            errors: [{
+              message: 'Throws!',
+              locations: [{ line: 1, column: 2 }],
+              stack: 'Stack trace',
+            }]
+          });
+          setTimeout(() => done(), 4);
+        } catch (e) {
+          setTimeout(() => done(e), 4);
+        }
 
-  //     };
-  //     app.listenToQueries(callback).then(() => {
-  //       app.unsubscribe();
-  //     });
-  //   });
-  // });
+      };
+      app.listenToQueries(callback).then(() => {
+        app.unsubscribe();
+      });
+    });
+  });
 
-  // describe('Custom validation rules', () => {
-  //   const AlwaysInvalidRule = function (context) {
-  //     return {
-  //       enter() {
-  //         context.reportError(new GraphQLError(
-  //           'AlwaysInvalidRule was really invalid!'
-  //         ));
-  //         return BREAK;
-  //       }
-  //     };
-  //   };
+  describe('Custom validation rules', () => {
+    const AlwaysInvalidRule = function (context) {
+      return {
+        enter() {
+          context.reportError(new GraphQLError(
+            'AlwaysInvalidRule was really invalid!'
+          ));
+          return BREAK;
+        }
+      };
+    };
 
-  //   it('Do not execute a query if it do not pass the custom validation.', (done) => {
+    it('Do not execute a query if it do not pass the custom validation.', (done) => {
 
-  //     const app = new AMQPSubscription({
-  //       schema: TestSchema,
-  //       logger,
-  //       validationRules: [AlwaysInvalidRule],
-  //     });
+      const app = new AMQPSubscription({
+        schema: TestSchema,
+        logger,
+        validationRules: [AlwaysInvalidRule],
+      });
 
-  //     const pubsub = new AmqpPubSub({ logger });
+      const pubsub = new AmqpPubSub({ logger });
 
-  //     const query = '{thrower}';
-  //     const data = { query };
-  //     pubsub.publish("graphql", data);
+      const query = '{thrower}';
+      const data = { query };
+      pubsub.publish("graphql", data);
 
-  //     const callback = function (payload) {
-  //       try {
-  //         expect(payload).to.deep.equal({
-  //           errors: [
-  //             {
-  //               locations: undefined,
-  //               message: 'AlwaysInvalidRule was really invalid!',
-  //               path: undefined,
-  //             },
-  //           ]
-  //         });
-  //         setTimeout(done(), 4);
-  //       } catch (e) {
-  //         setTimeout(done(e), 4);
-  //       }
+      const callback = function (payload) {
+        try {
+          expect(payload).to.deep.equal({
+            errors: [
+              {
+                locations: undefined,
+                message: 'AlwaysInvalidRule was really invalid!',
+                path: undefined,
+              },
+            ]
+          });
+          setTimeout(() => done(), 4);
+        } catch (e) {
+          setTimeout(() => done(e), 4);
+        }
 
-  //     };
-  //     app.listenToQueries(callback).then(() => {
-  //       app.unsubscribe();
-  //     });
-  //   });
-  // });
+      };
+      app.listenToQueries(callback).then(() => {
+        app.unsubscribe();
+      });
+    });
+  });
 });
