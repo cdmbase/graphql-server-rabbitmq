@@ -5,8 +5,8 @@ import {
   RabbitMqConsumer,
   IRabbitMqConnectionConfig,
   IRabbitMqConsumerDisposer,
-} from "rokot-mq-rabbit";
-import { Logger } from 'bunyan';
+} from "rabbitmq-pub-sub";
+import * as Logger from 'bunyan';
 import { createChildLogger } from './childLogger';
 
 export interface GrapQLAmqpOptions extends GraphQLOptions {
@@ -38,7 +38,7 @@ export class AMQPSubscription {
 
   public listenToQueries(cb?:Function): Promise<any> {
     return new Promise((resolve, reject) => this.listener.subscribe(this.GRAPHQL_QUEUENAME, 
-    msg => this.onMessage(msg).then(m => cb? cb(m): m))
+    msg => this.onMessage(msg).then(m => cb))
       .then(disposer => {
         this.unsubscribeChannel = disposer;
         return resolve();
