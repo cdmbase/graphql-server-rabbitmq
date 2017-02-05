@@ -1,6 +1,6 @@
 {
   "name": "graphql-server-rabbitmq",
-  "version": "0.5.2",
+  "version": "0.6.0",
   "description": "Production-ready Node.js GraphQL server for RabbitMQ",
   "main": "dist/index.js",
   "scripts": {
@@ -29,7 +29,7 @@
   "homepage": "https://github.com/cdmbase/graphql-server-rabbitmq#readme",
   "dependencies": {
     "@types/bunyan": "^0.0.35",
-    "graphql-rabbitmq-subscriptions": "^1.0.3",
+    "graphql-rabbitmq-subscriptions": "^1.0.5",
     "graphql-server-core": "^0.6.0",
     "graphql-server-module-graphiql": "^0.6.0",
     "rabbitmq-pub-sub": "^0.2.2"
