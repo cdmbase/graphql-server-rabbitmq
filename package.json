@@ -7,7 +7,7 @@
     "compile": "tsc",
     "prepublish": "npm run compile",
     "test": "npm run testonly --",
-    "testonly": "npm run compile && mocha --compilers js:babel-core/register --reporter spec --full-trace  --timeout 10000 ./dist/apolloServerRabbitMQ.test.js"
+    "testonly": "npm run compile && mocha --compilers js:babel-core/register --reporter spec --full-trace  --timeout 60000 ./dist/apolloServerRabbitMQ.test.js"
   },
   "repository": {
     "type": "git",
@@ -29,10 +29,10 @@
   "homepage": "https://github.com/cdmbase/graphql-server-rabbitmq#readme",
   "dependencies": {
     "@types/bunyan": "^0.0.35",
-    "graphql-rabbitmq-subscriptions": "^1.0.5",
+    "graphql-rabbitmq-subscriptions": "^1.0.6",
     "graphql-server-core": "^0.6.0",
     "graphql-server-module-graphiql": "^0.6.0",
-    "rabbitmq-pub-sub": "^0.2.2"
+    "rabbitmq-pub-sub": "^0.2.3"
   },
   "devDependencies": {
     "@types/chai": "^3.4.34",
@@ -61,7 +61,6 @@
     "graphql": "^0.8.0 || ^0.9.0"
   },
   "optionalDependencies": {
-    "@types/express": "^4.0.35",
     "@types/graphql": "^0.8.6"
   },
   "typings": "dist/index.d.ts",

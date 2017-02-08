@@ -8,8 +8,7 @@ import { AMQPSubscription, GrapQLAmqpOptions } from './rabbitmqApollo';
 import { AmqpPubSub } from 'graphql-rabbitmq-subscriptions';
 import { expect } from 'chai';
 import { stringify } from 'querystring';
-//import testSuite, { Schema, CreateAppOptions } from 'graphql-server-integration-testsuite';
-const request = require('supertest-as-promised');
+
 import {
   GraphQLSchema,
   GraphQLObjectType,
@@ -21,7 +20,7 @@ import {
 import { ConsoleLogger } from "cdm-logger";
 import { error } from "util";
 
-
+const graphqlEndpoint = "graphql";
 const logger = ConsoleLogger.create("subscription-test", { level: "trace" });
 
 const QueryRootType = new GraphQLObjectType({
@@ -60,13 +59,6 @@ const TestSchema = new GraphQLSchema({
   })
 });
 
-function urlString(urlParams?: any): string {
-  let str = '/graphql';
-  if (urlParams) {
-    str += ('?' + stringify(urlParams));
-  }
-  return str;
-}
 
 // function createApp(options: CreateAppOptions = {}) {
 //   options.graphqlOptions = options.graphqlOptions || { schema: Schema };
@@ -87,25 +79,21 @@ describe('rabbitmqApollo', () => {
   // });
 });
 
-// describe('integration:RabbitMQ', () => {
-//   testSuite(createApp);
-// });
-
-
 const version = 'modern';
-describe(`GraphQL-AMQP (apolloServer) tests for ${version} rabbitmq`, function() {
+describe(`GraphQL-AMQP (apolloServer) tests for ${version} rabbitmq`, function () {
 
   describe('publish functionality', () => {
     it('allows queries from amqp publish', (done) => {
       const app = new AMQPSubscription({
         schema: TestSchema,
         logger,
+        graphqlEndpoint,
       });
 
 
       const pubsub = new AmqpPubSub({ logger });
       const data = { query: '{ test(who: "World") }' };
-      pubsub.publish("graphql", data);
+
 
       const callback = (payload) => {
         try {
@@ -114,15 +102,16 @@ describe(`GraphQL-AMQP (apolloServer) tests for ${version} rabbitmq`, function()
               test: 'Hello World'
             }
           });
-          setTimeout(()=>done(), 2);
+          setTimeout(() => done(), 2);
         } catch (e) {
           setTimeout(() => done(e), 2);
         }
+        app.unsubscribe();
 
       };
       app.listenToQueries(callback).then(() => {
-        app.unsubscribe();
-      })
+        pubsub.publish(graphqlEndpoint, data);
+      });
     });
 
     it('allows for mutation from amqp publish', (done) => {
@@ -152,6 +141,7 @@ describe(`GraphQL-AMQP (apolloServer) tests for ${version} rabbitmq`, function()
       const app = new AMQPSubscription({
         schema: TestMutationSchema,
         logger,
+        graphqlEndpoint,
       });
 
       const pubsub = new AmqpPubSub({ logger });
@@ -159,7 +149,6 @@ describe(`GraphQL-AMQP (apolloServer) tests for ${version} rabbitmq`, function()
       const query = 'mutation test($echo: String){ testMutation(echo: $echo) }';
       const variables = { echo: 'world' };
       const data = { query, variables };
-      pubsub.publish("graphql", data);
 
       const callback = function (payload) {
         try {
@@ -168,16 +157,16 @@ describe(`GraphQL-AMQP (apolloServer) tests for ${version} rabbitmq`, function()
               testMutation: 'not really a mutation, but who cares: world'
             }
           });
-          setTimeout(() => done(), 4);
+          setTimeout(() => done(), 2);
         } catch (e) {
 
-          setTimeout(() => done(e), 4);
+          setTimeout(() => done(e), 2);
         }
-
+        app.unsubscribe();
       };
       app.listenToQueries(callback).then(() => {
-        app.unsubscribe();
-      });
+        pubsub.publish(graphqlEndpoint, data);
+      })
     });
   });
 
@@ -187,13 +176,12 @@ describe(`GraphQL-AMQP (apolloServer) tests for ${version} rabbitmq`, function()
       const app = new AMQPSubscription({
         schema: TestSchema,
         logger,
+        graphqlEndpoint,
       });
 
       const pubsub = new AmqpPubSub({ logger });
-
       const query = '{thrower}';
       const data = { query };
-      pubsub.publish("graphql", data);
 
       const callback = function (payload) {
         try {
@@ -205,14 +193,15 @@ describe(`GraphQL-AMQP (apolloServer) tests for ${version} rabbitmq`, function()
               path: ["thrower"]
             }]
           });
-          setTimeout(() => done(), 4);
+          setTimeout(() => done(), 2);
         } catch (e) {
-          setTimeout(() => done(e), 4);
+          setTimeout(() => done(e), 2);
         }
-
+        app.unsubscribe();
       };
       app.listenToQueries(callback).then(() => {
-        app.unsubscribe();
+        pubsub.publish(graphqlEndpoint, data);
+        //      setTimeout(() => app.unsubscribe(), 50);
       });
     });
 
@@ -226,11 +215,9 @@ describe(`GraphQL-AMQP (apolloServer) tests for ${version} rabbitmq`, function()
         logger,
       });
 
-      const pubsub = new AmqpPubSub({ logger });
-
       const query = '{thrower}';
       const data = { query };
-      pubsub.publish("graphql", data);
+      const pubsub = new AmqpPubSub({ logger });
 
       const callback = function (payload) {
         try {
@@ -240,14 +227,14 @@ describe(`GraphQL-AMQP (apolloServer) tests for ${version} rabbitmq`, function()
               message: 'Custom error format: Throws!',
             }]
           });
-          setTimeout(() => done(), 4);
+          setTimeout(() => done(), 2);
         } catch (e) {
-          setTimeout(() => done(e), 4);
+          setTimeout(() => done(e), 2);
         }
-
+        app.unsubscribe();
       };
       app.listenToQueries(callback).then(() => {
-        app.unsubscribe();
+        pubsub.publish(graphqlEndpoint, data);
       });
     });
 
@@ -256,6 +243,7 @@ describe(`GraphQL-AMQP (apolloServer) tests for ${version} rabbitmq`, function()
       const app = new AMQPSubscription({
         schema: TestSchema,
         logger,
+        graphqlEndpoint,
         formatError(error) {
           return {
             message: error.message,
@@ -266,10 +254,9 @@ describe(`GraphQL-AMQP (apolloServer) tests for ${version} rabbitmq`, function()
       });
 
       const pubsub = new AmqpPubSub({ logger });
-
       const query = '{thrower}';
       const data = { query };
-      pubsub.publish("graphql", data);
+      pubsub.publish(graphqlEndpoint, data);
 
       const callback = function (payload) {
         try {
@@ -281,14 +268,14 @@ describe(`GraphQL-AMQP (apolloServer) tests for ${version} rabbitmq`, function()
               stack: 'Stack trace',
             }]
           });
-          setTimeout(() => done(), 4);
+          setTimeout(() => done(), 10);
         } catch (e) {
-          setTimeout(() => done(e), 4);
+          setTimeout(() => done(e), 10);
         }
-
+        app.unsubscribe();
       };
       app.listenToQueries(callback).then(() => {
-        app.unsubscribe();
+        pubsub.publish(graphqlEndpoint, data);
       });
     });
   });
@@ -310,14 +297,13 @@ describe(`GraphQL-AMQP (apolloServer) tests for ${version} rabbitmq`, function()
       const app = new AMQPSubscription({
         schema: TestSchema,
         logger,
+        graphqlEndpoint,
         validationRules: [AlwaysInvalidRule],
       });
 
       const pubsub = new AmqpPubSub({ logger });
-
       const query = '{thrower}';
       const data = { query };
-      pubsub.publish("graphql", data);
 
       const callback = function (payload) {
         try {
@@ -330,14 +316,15 @@ describe(`GraphQL-AMQP (apolloServer) tests for ${version} rabbitmq`, function()
               },
             ]
           });
-          setTimeout(() => done(), 4);
+          setTimeout(() => done(), 10);
         } catch (e) {
-          setTimeout(() => done(e), 4);
+          setTimeout(() => done(e), 10);
         }
+        app.unsubscribe();
 
       };
       app.listenToQueries(callback).then(() => {
-        app.unsubscribe();
+        pubsub.publish(graphqlEndpoint, data);
       });
     });
   });

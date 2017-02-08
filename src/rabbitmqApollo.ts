@@ -5,16 +5,16 @@ import {
 import { GraphQLOptions, runQuery } from 'graphql-server-core';
 import {
   RabbitMqConnectionFactory,
-  RabbitMqConsumer,
+  RabbitMqSubscriber,
   IRabbitMqConnectionConfig,
-  IRabbitMqConsumerDisposer,
 } from "rabbitmq-pub-sub";
 import * as Logger from 'bunyan';
 import { createChildLogger } from './childLogger';
 
 export interface GrapQLAmqpOptions extends GraphQLOptions {
   config?: IRabbitMqConnectionConfig,
-  logger?: Logger;
+  logger: Logger;
+  graphqlEndpoint?: string;
 }
 export class AMQPSubscription {
 
@@ -28,34 +28,34 @@ export class AMQPSubscription {
       // TODO: test this
       throw new Error(`Apollo Server expects exactly one argument, got ${arguments.length}`);
     }
-
     const config = options.config || { host: "127.0.0.1", port: 5672 };
     const { logger } = options;
     this.logger = createChildLogger(logger, 'AmqpSubscriptionServer');
+    this.graphqlEndpoint = options.graphqlEndpoint || "graphql"
 
     const factory = new RabbitMqConnectionFactory(logger, config);
-    this.listener = new RabbitMqConsumer(logger, factory);
+    this.listener = new RabbitMqSubscriber(logger, factory);
 
     this.graphqlOptions = options;
   }
 
   public listenToQueries(cb?: Function): Promise<any> {
-    return new Promise((resolve, reject) => this.listener.subscribe(this.GRAPHQL_QUEUENAME,
+    return new Promise((resolve, reject) => this.listener.subscribe(this.graphqlEndpoint,
       msg => this.onMessage(msg).then(m => cb ? cb(m) : m))
       .then(disposer => {
         this.unsubscribeChannel = disposer;
         return resolve();
       }).catch(err => {
-        this.logger.error(err, "failed to recieve message from queue '%s'", this.GRAPHQL_QUEUENAME);
+        this.logger.error(err, "failed to recieve message from queue '%s'", this.graphqlEndpoint);
         reject()
       }));
   }
 
   public unsubscribe() {
     this.unsubscribeChannel().then(() => {
-      this.logger.trace("cancelled channel from subscribing to queue '%s'", this.GRAPHQL_QUEUENAME);
+      this.logger.trace("cancelled channel from subscribing to queue '%s'", this.graphqlEndpoint);
     }).catch(err => {
-      this.logger.error(err, "channel cancellation failed from queue '%j'", this.GRAPHQL_QUEUENAME);
+      this.logger.error(err, "channel cancellation failed from queue '%j'", this.graphqlEndpoint);
     });
   }
 
@@ -103,7 +103,7 @@ export class AMQPSubscription {
   private listener: any;
   private logger: Logger;
   private graphqlOptions: GraphQLOptions;
-  private GRAPHQL_QUEUENAME = "graphql";
+  private graphqlEndpoint: string;
   private unsubscribeChannel: any;
 }
 
